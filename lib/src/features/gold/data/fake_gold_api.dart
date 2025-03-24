@@ -7,6 +7,7 @@ Stream<double> getGoldPriceStream() {
   return Stream<double>.periodic(
     const Duration(seconds: 1),
     (int _) {
+      // throw Exception("Daten waren fehlerhaft");
       return 60 + random.nextDouble() * 20;
     },
   );

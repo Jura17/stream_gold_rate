@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:stream_gold_rate/src/features/gold/data/fake_gold_api.dart';
 
 class GoldScreen extends StatelessWidget {
   const GoldScreen({super.key});
   @override
   Widget build(BuildContext context) {
-    /// Platzhalter für den Goldpreis
-    /// soll durch den Stream `getGoldPriceStream()` ersetzt werden
-    const double goldPrice = 69.22;
+    double goldPrice = 69.22;
 
     return SafeArea(
       child: Scaffold(
@@ -18,17 +17,35 @@ class GoldScreen extends StatelessWidget {
             children: [
               _buildHeader(context),
               const SizedBox(height: 20),
-              Text('Live Kurs:',
-                  style: Theme.of(context).textTheme.headlineMedium),
+              Text('Live Kurs:', style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 20),
-              // TODO: Verwende einen StreamBuilder, um den Goldpreis live anzuzeigen
-              // statt des konstanten Platzhalters
-              Text(
-                NumberFormat.simpleCurrency(locale: 'de_DE').format(goldPrice),
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineLarge!
-                    .copyWith(color: Theme.of(context).colorScheme.primary),
+              StreamBuilder(
+                stream: getGoldPriceStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  if (snapshot.hasError) {
+                    return Text(
+                      "Ein Fehler ist aufgetreten:\n${snapshot.error}",
+                      style: const TextStyle(color: Colors.red),
+                    );
+                  }
+
+                  if (!snapshot.hasData || snapshot.data == null) {
+                    return const Text("Keine Daten vorhanden.");
+                  }
+
+                  goldPrice = snapshot.data!;
+                  return Text(
+                    NumberFormat.simpleCurrency(locale: 'de_DE').format(goldPrice),
+                    style: Theme.of(context)
+                        .textTheme
+                        .headlineLarge!
+                        .copyWith(color: Theme.of(context).colorScheme.primary),
+                  );
+                },
               ),
             ],
           ),
